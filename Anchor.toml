@@ -5,8 +5,8 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-clearing_house = "DmYiroqr7gNKTANvTmVLbVbpFQWAganFVBhFioKSc5Da"
-mock_usdc_faucet = "8WkxHtu3jUcGN1q3wkGw3Tkw8gxdeke3kNAerwis79oW"
+clearing_house = "3LptehCCdJcnsG8DaFJKqCGLorUswXYmmkCTkrzTjh1D"
+mock_usdc_faucet = "EquvT3T5QAnj8t9sL9sCN3mXXzdhrugt3Esv3Bqjyemi"
 
 [registry]
 url = "https://api.apr.dev"

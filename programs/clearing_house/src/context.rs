@@ -145,3 +145,25 @@ pub struct InitializeUser<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct InitializeUserWithExplicitPayer<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
+    pub state: AccountLoader<'info, State>,
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + size_of::<User>(),
+        seeds = [b"user", authority.key.as_ref()],
+        bump
+    )]
+    pub user: Box<Account<'info, User>>,
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + size_of::<UserPositions>(),
+    )]
+    pub user_postions: AccountLoader<'info, UserPositions>,
+    pub system_program: Program<'info, System>,
+}

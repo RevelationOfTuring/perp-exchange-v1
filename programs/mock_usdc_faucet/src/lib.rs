@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, MintTo, Token, TokenAccount};
 use std::mem::size_of;
 
-declare_id!("8WkxHtu3jUcGN1q3wkGw3Tkw8gxdeke3kNAerwis79oW");
+declare_id!("EquvT3T5QAnj8t9sL9sCN3mXXzdhrugt3Esv3Bqjyemi");
 
 #[program]
 pub mod mock_usdc_faucet {

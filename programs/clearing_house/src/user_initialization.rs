@@ -15,7 +15,7 @@ pub fn initialize(
     state: &AccountLoader<State>,
     user: &mut Box<Account<User>>,
     user_positions: &AccountLoader<UserPositions>,
-    signer: &Signer,
+    authority: &Signer,
     // 只能有一个元素，该元素为signer的whitelist token account地址
     remaining_accounts: &[AccountInfo],
     optional_accounts: InitializeUserOptionalAccounts,
@@ -36,7 +36,7 @@ pub fn initialize(
         // 检查whitelist_token的owner为signer，否则报错（即whitelist token的authority不是signer）
         require_keys_eq!(
             whitelist_token.owner,
-            *signer.key,
+            *authority.key,
             Errors::InvalidWhitelistToken
         );
 
@@ -45,7 +45,7 @@ pub fn initialize(
     }
 
     // 初始化pda<User>
-    user.authority = *signer.key;
+    user.authority = *authority.key;
     user.positons = user_positions.key();
 
     // 初始化account<UserPositions>

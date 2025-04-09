@@ -17,7 +17,7 @@ pub mod user_initialization;
 
 use controller::position::PositionDirection;
 
-declare_id!("DmYiroqr7gNKTANvTmVLbVbpFQWAganFVBhFioKSc5Da");
+declare_id!("3LptehCCdJcnsG8DaFJKqCGLorUswXYmmkCTkrzTjh1D");
 
 #[program]
 pub mod clearing_house {
@@ -337,6 +337,20 @@ pub mod clearing_house {
             &mut ctx.accounts.user,
             &ctx.accounts.user_postions,
             &ctx.accounts.signer,
+            ctx.remaining_accounts,
+            optional_accounts,
+        )
+    }
+
+    pub fn initialize_user_with_explicit_payer(
+        ctx: Context<InitializeUserWithExplicitPayer>,
+        optional_accounts: user_initialization::InitializeUserOptionalAccounts,
+    ) -> Result<()> {
+        user_initialization::initialize(
+            &ctx.accounts.state,
+            &mut ctx.accounts.user,
+            &ctx.accounts.user_postions,
+            &ctx.accounts.authority,
             ctx.remaining_accounts,
             optional_accounts,
         )
