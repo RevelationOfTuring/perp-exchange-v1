@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, web3, Program, IdlTypes } from "@coral-xyz/anchor";
+import { AnchorProvider, web3, Program, IdlTypes, BN } from "@coral-xyz/anchor";
 import { createMint } from '@solana/spl-token';
 import { createAccounts, getSeedFromNumber } from './utils';
 import { ClearingHouse } from "../../target/types/clearing_house";
@@ -20,6 +20,7 @@ export class TestClient {
     insuranceVault: PublicKey;
     insuranceVaultAuthority: PublicKey;
     markets: PublicKey;
+    pythPriceFeed: PublicKey;
 
     fundingPaymentHistory: PublicKey;
     tradeHistory: PublicKey;
@@ -188,6 +189,40 @@ order state: ${this.orderState}`);
 
     async getOrderState(): Promise<IdlTypes<ClearingHouse>['orderState']> {
         return await this.clearingHouse.account.orderState.fetch(this.orderState);
+    }
+
+    async pythInitializePrice(price: BN, conf: BN, exponent: number, emaPrice: BN, emaConf: BN) {
+        const acckey = web3.Keypair.generate();
+        this.pythPriceFeed = acckey.publicKey;
+
+        const signer = this.getCurrentSigner();
+        await this.mockPyth.methods.initializePrice(price, conf, exponent, emaPrice, emaConf)
+            .accounts({
+                authority: signer.publicKey,
+                price: this.pythPriceFeed
+            })
+            .signers([signer, acckey])
+            .rpc();
+    }
+
+    async pythSetPrice(price: BN) {
+        await this.mockPyth.methods.setPrice(price)
+            .accounts({
+                price: this.pythPriceFeed
+            })
+            .rpc();
+    }
+
+    async pythSetEmaPrice(emaPrice: BN) {
+        await this.mockPyth.methods.setEmaPrice(emaPrice)
+            .accounts({
+                price: this.pythPriceFeed
+            })
+            .rpc();
+    }
+
+    async getPythPriceFeed(): Promise<IdlTypes<MockPyth>['priceUpdateV2']> {
+        return (await this.mockPyth.account.priceUpdate.fetch(this.pythPriceFeed))[0];
     }
 
     changeCurrentSigner(index: number) {
