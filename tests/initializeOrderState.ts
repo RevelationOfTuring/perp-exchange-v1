@@ -1,20 +1,16 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program, web3, BN } from "@coral-xyz/anchor";
-import { ClearingHouse } from "../target/types/clearing_house";
-import { createAccounts, requireBNEq, requireCustomError, requireNativeError, requirePublickeyEq, ZERO_BN } from "./utils";
+import { web3, BN } from "@coral-xyz/anchor";
+import { createAccounts, requireBNEq, requireCustomError, requireNativeError, requirePublickeyEq, ZERO_BN } from "./utils/utils";
 import { expect } from "chai";
-import { TestClient } from "./testClient";
+import { TestClient } from "./utils/testClient";
 
 describe("clearing house: initialize_order_state", () => {
     const provider = anchor.AnchorProvider.env();
     anchor.setProvider(provider);
-
-    const program = anchor.workspace.ClearingHouse as Program<ClearingHouse>;
-
     let testCli: TestClient;
 
     before(async () => {
-        testCli = await TestClient.create(provider, program, 2);
+        testCli = await TestClient.create(provider, 2);
         await testCli.initializeRelevantAccounts(9, true);
         await testCli.initializeHistoriesAccounts(true);
         await testCli.initialize(true);
@@ -54,12 +50,12 @@ describe("clearing house: initialize_order_state", () => {
         const [newOrderHistory] = await createAccounts(
             provider,
             [8 + 458784],
-            program.programId
+            testCli.clearingHouse.programId
         );
         const signer = testCli.getCurrentSigner();
 
         await requireNativeError(
-            program.methods.initializeOrderState()
+            testCli.clearingHouse.methods.initializeOrderState()
                 .accounts({
                     admin: signer.publicKey,
                     state: testCli.state,

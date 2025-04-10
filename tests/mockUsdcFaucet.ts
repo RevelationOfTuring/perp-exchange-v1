@@ -2,8 +2,8 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program, web3, BN } from "@coral-xyz/anchor";
 import { MockUsdcFaucet } from "../target/types/mock_usdc_faucet";
 import { createAssociatedTokenAccount, createMint, getAccount, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { TestClient } from "./testClient";
-import { requirePublickeyEq } from "./utils";
+import { TestClient } from "./utils/testClient";
+import { requirePublickeyEq } from "./utils/utils";
 import { expect } from "chai";
 type PublicKey = web3.PublicKey;
 
@@ -21,7 +21,7 @@ describe("mock usdc faucet", () => {
 
 
   before(async () => {
-    testCli = await TestClient.create(provider, null, 2);
+    testCli = await TestClient.create(provider, 2);
     const mockUsdcMintKey = web3.Keypair.generate();
 
     [mintAuthorityPda, mintAuthorityPdaBump] = web3.PublicKey.findProgramAddressSync([mockUsdcMintKey.publicKey.toBytes()], program.programId);

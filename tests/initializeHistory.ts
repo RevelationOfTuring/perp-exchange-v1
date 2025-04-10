@@ -1,20 +1,16 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program, web3 } from "@coral-xyz/anchor";
-import { ClearingHouse } from "../target/types/clearing_house";
-import { createAccounts, requireBNEq, requireCustomError, requirePublickeyEq, ZERO_BN } from "./utils";
+import { web3 } from "@coral-xyz/anchor";
+import { createAccounts, requireBNEq, requireCustomError, requirePublickeyEq, ZERO_BN } from "./utils/utils";
 import { expect } from "chai";
-import { TestClient } from "./testClient";
+import { TestClient } from "./utils/testClient";
 
 describe("clearing house: initialize_history", () => {
     const provider = anchor.AnchorProvider.env();
     anchor.setProvider(provider);
-
-    const program = anchor.workspace.ClearingHouse as Program<ClearingHouse>;
-
     let testCli: TestClient;
 
     before(async () => {
-        testCli = await TestClient.create(provider, program, 2);
+        testCli = await TestClient.create(provider, 2);
         await testCli.initializeRelevantAccounts(9, true);
         await testCli.initializeHistoriesAccounts(true);
         await testCli.initialize(true);
@@ -76,11 +72,11 @@ describe("clearing house: initialize_history", () => {
         const [newTradeHistory, newDepositHistory, newLiquidationHistory, newFundingPaymentHistory, newFundingRateHistory, newCurveHistory] = await createAccounts(
             provider,
             [8 + 262160, 8 + 147472, 8 + 262160, 8 + 196624, 8 + 114704, 8 + 311312],
-            program.programId
+            testCli.clearingHouse.programId
         );
         const signer = testCli.getCurrentSigner();
         await requireCustomError(
-            program.methods.intializeHistory()
+            testCli.clearingHouse.methods.intializeHistory()
                 .accounts({
                     admin: signer.publicKey,
                     state: testCli.state,

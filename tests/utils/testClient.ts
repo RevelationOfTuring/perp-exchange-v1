@@ -1,14 +1,17 @@
+import * as anchor from "@coral-xyz/anchor";
 import { AnchorProvider, web3, Program, IdlTypes } from "@coral-xyz/anchor";
 import { createMint } from '@solana/spl-token';
 import { createAccounts, getSeedFromNumber } from './utils';
-import { ClearingHouse } from "../target/types/clearing_house";
+import { ClearingHouse } from "../../target/types/clearing_house";
+import { MockPyth } from "../../target/types/mock_pyth";
 type PublicKey = web3.PublicKey;
 
 export class TestClient {
     provider: AnchorProvider;
     signers: Array<web3.Keypair>;
     currentSignerIndex: number;
-    program: Program<ClearingHouse>;
+    clearingHouse: Program<ClearingHouse>;
+    mockPyth: Program<MockPyth>;
 
     state: PublicKey;
     collateralMint: PublicKey;
@@ -29,10 +32,15 @@ export class TestClient {
     orderState: PublicKey;
 
 
-    static async create(provider: AnchorProvider, clearingHouse: Program<ClearingHouse>, signersNum: number): Promise<TestClient> {
+    static async create(provider: AnchorProvider, signersNum: number, hasClearingHouse = true, hasMockPyth = true): Promise<TestClient> {
         const tc = new TestClient();
         tc.provider = provider;
-        tc.program = clearingHouse;
+        if (hasClearingHouse) {
+            tc.clearingHouse = anchor.workspace.ClearingHouse as Program<ClearingHouse>;
+        }
+        if (hasMockPyth) {
+            tc.mockPyth = anchor.workspace.MockPyth as Program<MockPyth>;
+        }
         tc.signers = new Array<web3.Keypair>(signersNum);
         tc.currentSignerIndex = 0;
         for (let index = 0; index < signersNum; index++) {
@@ -51,13 +59,13 @@ export class TestClient {
         [this.tradeHistory, this.depositHistory, this.liquidationHistory, this.fundingPaymentHistory, this.fundingRateHistory, this.curveHistory] = await createAccounts(
             this.provider,
             [8 + 262160, 8 + 147472, 8 + 262160, 8 + 196624, 8 + 114704, 8 + 311312],
-            this.program.programId
+            this.clearingHouse.programId
         );
 
         [this.orderHistory] = await createAccounts(
             this.provider,
             [8 + 458784],
-            this.program.programId
+            this.clearingHouse.programId
         );
 
         if (logAddrs) {
@@ -73,17 +81,17 @@ orderHistory: ${this.orderHistory}`);
 
     async initializeRelevantAccounts(mintDecimal: number, logAddrs = false) {
         this.collateralMint = await this.createMint(mintDecimal);
-        [this.collateralVault,] = web3.PublicKey.findProgramAddressSync([Buffer.from('collateral_vault')], this.program.programId);
-        [this.collateralVaultAuthority,] = web3.PublicKey.findProgramAddressSync([this.collateralVault.toBuffer()], this.program.programId);
-        [this.insuranceVault,] = web3.PublicKey.findProgramAddressSync([Buffer.from('insurance_vault')], this.program.programId);
-        [this.insuranceVaultAuthority,] = web3.PublicKey.findProgramAddressSync([this.insuranceVault.toBuffer()], this.program.programId);
-        [this.orderState,] = web3.PublicKey.findProgramAddressSync([Buffer.from('order_state')], this.program.programId);
+        [this.collateralVault,] = web3.PublicKey.findProgramAddressSync([Buffer.from('collateral_vault')], this.clearingHouse.programId);
+        [this.collateralVaultAuthority,] = web3.PublicKey.findProgramAddressSync([this.collateralVault.toBuffer()], this.clearingHouse.programId);
+        [this.insuranceVault,] = web3.PublicKey.findProgramAddressSync([Buffer.from('insurance_vault')], this.clearingHouse.programId);
+        [this.insuranceVaultAuthority,] = web3.PublicKey.findProgramAddressSync([this.insuranceVault.toBuffer()], this.clearingHouse.programId);
+        [this.orderState,] = web3.PublicKey.findProgramAddressSync([Buffer.from('order_state')], this.clearingHouse.programId);
 
         // create state && markets accounts
         [this.state, this.markets] = await createAccounts(
             this.provider,
             [8 + 1200, 8 + 31744],
-            this.program.programId
+            this.clearingHouse.programId
         );
 
         if (logAddrs) {
@@ -100,7 +108,7 @@ order state: ${this.orderState}`);
 
     async initializeOrderState() {
         const signer = this.getCurrentSigner();
-        await this.program.methods.initializeOrderState()
+        await this.clearingHouse.methods.initializeOrderState()
             .accounts({
                 admin: signer.publicKey,
                 state: this.state,
@@ -112,7 +120,7 @@ order state: ${this.orderState}`);
 
     async initializeHistory() {
         const signer = this.getCurrentSigner();
-        await this.program.methods.intializeHistory()
+        await this.clearingHouse.methods.intializeHistory()
             .accounts({
                 admin: signer.publicKey,
                 state: this.state,
@@ -129,7 +137,7 @@ order state: ${this.orderState}`);
 
     async initialize(adminControlsPrices: boolean) {
         const signer = this.getCurrentSigner();
-        await this.program.methods.initialize(adminControlsPrices)
+        await this.clearingHouse.methods.initialize(adminControlsPrices)
             .accounts({
                 admin: signer.publicKey,
                 state: this.state,
@@ -143,43 +151,43 @@ order state: ${this.orderState}`);
     }
 
     async getState(): Promise<IdlTypes<ClearingHouse>['state']> {
-        return await this.program.account.state.fetch(this.state);
+        return await this.clearingHouse.account.state.fetch(this.state);
     }
 
     async getMarkets(): Promise<IdlTypes<ClearingHouse>['markets']> {
-        return await this.program.account.markets.fetch(this.markets);
+        return await this.clearingHouse.account.markets.fetch(this.markets);
     }
 
     async getFundingPaymentHistory(): Promise<IdlTypes<ClearingHouse>['fundingPaymentHistory']> {
-        return await this.program.account.fundingPaymentHistory.fetch(this.fundingPaymentHistory);
+        return await this.clearingHouse.account.fundingPaymentHistory.fetch(this.fundingPaymentHistory);
     }
 
     async getTradeHistory(): Promise<IdlTypes<ClearingHouse>['tradeHistory']> {
-        return await this.program.account.tradeHistory.fetch(this.tradeHistory);
+        return await this.clearingHouse.account.tradeHistory.fetch(this.tradeHistory);
     }
 
     async getLiquidationHistory(): Promise<IdlTypes<ClearingHouse>['liquidationHistory']> {
-        return await this.program.account.liquidationHistory.fetch(this.liquidationHistory);
+        return await this.clearingHouse.account.liquidationHistory.fetch(this.liquidationHistory);
     }
 
     async getDepositHistory(): Promise<IdlTypes<ClearingHouse>['depositHistory']> {
-        return await this.program.account.depositHistory.fetch(this.depositHistory);
+        return await this.clearingHouse.account.depositHistory.fetch(this.depositHistory);
     }
 
     async getFundingRateHistory(): Promise<IdlTypes<ClearingHouse>['fundingRateHistory']> {
-        return await this.program.account.fundingRateHistory.fetch(this.fundingRateHistory);
+        return await this.clearingHouse.account.fundingRateHistory.fetch(this.fundingRateHistory);
     }
 
     async getCurveHistory(): Promise<IdlTypes<ClearingHouse>['curveHistory']> {
-        return await this.program.account.curveHistory.fetch(this.curveHistory);
+        return await this.clearingHouse.account.curveHistory.fetch(this.curveHistory);
     }
 
     async getOrderHistory(): Promise<IdlTypes<ClearingHouse>['orderHistory']> {
-        return await this.program.account.orderHistory.fetch(this.orderHistory);
+        return await this.clearingHouse.account.orderHistory.fetch(this.orderHistory);
     }
 
     async getOrderState(): Promise<IdlTypes<ClearingHouse>['orderState']> {
-        return await this.program.account.orderState.fetch(this.orderState);
+        return await this.clearingHouse.account.orderState.fetch(this.orderState);
     }
 
     changeCurrentSigner(index: number) {
