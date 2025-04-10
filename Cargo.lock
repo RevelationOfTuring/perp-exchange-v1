@@ -1327,6 +1327,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "mock_pyth"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "pyth-solana-receiver-sdk",
+]
+
+[[package]]
 name = "mock_usdc_faucet"
 version = "0.1.0"
 dependencies = [

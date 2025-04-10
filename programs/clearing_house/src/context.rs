@@ -117,11 +117,47 @@ pub struct InitializeMarket<'info> {
     pub oracle: UncheckedAccount<'info>,
 }
 
-// #[derive(Accounts)]
-// pub struct DepositCollateral<'info> {
-//     #[account(mut)]
-//     pub state: AccountLoader<'info, State>,
-// }
+#[derive(Accounts)]
+pub struct DepositCollateral<'info> {
+    pub authority: Signer<'info>,
+    #[account(mut)]
+    pub state: AccountLoader<'info, State>,
+    #[account(
+        mut,
+        has_one = authority,
+        // 保证user与user_positions的一致性
+        constraint = user.positons.key().eq(&user_positions.key())
+    )]
+    pub user: Box<Account<'info, User>>,
+    #[account(
+        mut,
+        constraint = state.load()?.collateral_vault.eq(&collateral_vault.key())
+    )]
+    pub collateral_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
+    pub user_collateral_account: Box<Account<'info, TokenAccount>>,
+    #[account(
+        constraint = state.load()?.markets.eq(&markets.key())
+    )]
+    pub markets: AccountLoader<'info, Markets>,
+    #[account(
+        mut,
+        // 保证user与user_positions的一致性
+        has_one = user       
+    )]
+    pub user_positions: AccountLoader<'info, UserPositions>,
+    #[account(
+        mut,
+        constraint = state.load()?.funding_payment_history.eq(&funding_payment_history.key())
+    )]
+    pub funding_payment_history: AccountLoader<'info, FundingPaymentHistory>,
+    #[account(
+        mut,
+        constraint = state.load()?.deposit_history.eq(&deposit_history.key())
+    )]
+    pub deposit_history: AccountLoader<'info, DepositHistory>,
+    pub token_program: Program<'info, Token>,
+}
 
 #[derive(Accounts)]
 pub struct InitializeUser<'info> {

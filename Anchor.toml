@@ -6,6 +6,7 @@ skip-lint = false
 
 [programs.localnet]
 clearing_house = "3LptehCCdJcnsG8DaFJKqCGLorUswXYmmkCTkrzTjh1D"
+mock_pyth = "GxGELgceihUaxGqhfCYbuPwgwyFcaBM2GPPzR75997E4"
 mock_usdc_faucet = "EquvT3T5QAnj8t9sL9sCN3mXXzdhrugt3Esv3Bqjyemi"
 
 [registry]

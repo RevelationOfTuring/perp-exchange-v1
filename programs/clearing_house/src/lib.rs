@@ -355,4 +355,18 @@ pub mod clearing_house {
             optional_accounts,
         )
     }
+
+    // pub fn deposit_collateral(ctx: Context<DepositCollateral>, _amount: u64) -> Result<()> {
+    //     let user = &mut ctx.accounts.user;
+    //     let now = Clock::get()?.unix_timestamp;
+
+    //     let collateral_before = user.collateral;
+    //     let cumculative_deposits_before = user.cumculative_deposits;
+
+    //     let markets = ctx.accounts.markets.load()?;
+    //     let user_position = ctx.accounts.user_positions.load_mut()?;
+        
+
+    //     Ok(())
+    // }
 }
