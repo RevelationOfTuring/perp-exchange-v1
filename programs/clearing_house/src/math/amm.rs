@@ -6,6 +6,7 @@ use crate::math::{
     constant::*,
 };
 
+// quote_asset_reserve/base_asset_reserve*(peg_multiplier/PEG_PRECISION) -> 最后提升到MARK_PRICE_PRECISION精度
 pub fn calculate_price(
     quote_asset_reserve: u128,
     base_asset_reserve: u128,
@@ -24,4 +25,16 @@ pub fn calculate_price(
         .checked_div(U192::from(base_asset_reserve))
         .ok_or_else(math_error!())?
         .try_to_u128()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_calculate_price() {
+        assert_eq!(
+            calculate_price(1000, 1000, 1000).unwrap(),
+            MARK_PRICE_PRECISION
+        );
+    }
 }

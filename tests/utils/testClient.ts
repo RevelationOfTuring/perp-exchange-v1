@@ -272,6 +272,10 @@ order state: ${this.orderState}`);
         return this.signers[this.currentSignerIndex];
     }
 
+    getSignerByIndex(index: number): web3.Keypair {
+        return this.signers[index];
+    }
+
     async createMint(decimal: number): Promise<PublicKey> {
         const currentSigner = this.getCurrentSigner();
         return await createMint(

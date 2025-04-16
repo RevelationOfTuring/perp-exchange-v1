@@ -42,7 +42,7 @@ pub fn handle_initialize_market(
     // 基于储备量和 peg 乘数计算初始价格
     // 由于amm_base_asset_reserve与amm_base_asset_reserve为1:1，所以只能通过设定amm_peg_multiplier值来调整初始价格
     let init_mark_price = amm::calculate_price(
-        amm_base_asset_reserve,
+        amm_quote_asset_reserve,
         amm_base_asset_reserve,
         amm_peg_multiplier,
     )?;

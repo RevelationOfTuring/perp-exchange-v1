@@ -1,8 +1,7 @@
 import { AnchorError, AnchorProvider, BN, Wallet, web3 } from "@coral-xyz/anchor";
 import { expect } from "chai";
+import { TEN } from "../constants/numericConstants";
 type PublicKey = web3.PublicKey;
-
-const ZERO_BN = new BN(0);
 
 function requireBNEq(a: BN, b: BN) {
     expect(a.toString()).eq(b.toString());
@@ -15,7 +14,12 @@ function requirePublickeyEq(a: web3.PublicKey, b: web3.PublicKey) {
 async function requireCustomError(p: Promise<any>, errorCode: string, logged = false) {
     try {
         await p;
+        throw new Error('No error thrown: Expect to throw error but none in fact');
     } catch (e) {
+        if (e instanceof Error && e.message.startsWith('No error thrown')) {
+            throw e;
+        }
+
         let error = e as AnchorError;
         if (logged) {
             console.log(error);
@@ -80,4 +84,8 @@ function getSeedFromNumber(n: number): Uint8Array {
     return new Uint8Array(buf);
 }
 
-export { requireBNEq, requirePublickeyEq, createAccounts, requireNativeError, requireCustomError, getSeedFromNumber, ZERO_BN };
+function takeTenToPower(exponent: number): BN {
+    return TEN.pow(new BN(exponent));
+}
+
+export { requireBNEq, requirePublickeyEq, createAccounts, requireNativeError, requireCustomError, getSeedFromNumber, takeTenToPower };

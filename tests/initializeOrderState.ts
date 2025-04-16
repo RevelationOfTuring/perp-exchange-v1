@@ -1,8 +1,9 @@
 import * as anchor from "@coral-xyz/anchor";
 import { web3, BN } from "@coral-xyz/anchor";
-import { createAccounts, requireBNEq, requireCustomError, requireNativeError, requirePublickeyEq, ZERO_BN } from "./utils/utils";
+import { createAccounts, requireBNEq, requireCustomError, requireNativeError, requirePublickeyEq } from "./utils/utils";
 import { expect } from "chai";
 import { TestClient } from "./utils/testClient";
+import { ZERO } from "./constants/numericConstants";
 
 describe("clearing house: initialize_order_state", () => {
     const provider = anchor.AnchorProvider.env();
@@ -41,8 +42,8 @@ describe("clearing house: initialize_order_state", () => {
         requireBNEq(orderState.minOrderQuoteAssetAmount, new BN(500000));
 
         const orderHistory = await testCli.getOrderHistory();
-        requireBNEq(orderHistory.head, ZERO_BN);
-        requireBNEq(orderHistory.lastOrderId, ZERO_BN);
+        requireBNEq(orderHistory.head, ZERO);
+        requireBNEq(orderHistory.lastOrderId, ZERO);
         expect(orderHistory.orderRecords.length).eq(1024);
     });
 
