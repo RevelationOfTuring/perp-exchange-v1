@@ -21,7 +21,7 @@ describe("mock usdc faucet", () => {
 
 
   before(async () => {
-    testCli = await TestClient.create(provider, 2);
+    testCli = await TestClient.create(provider, 2, false, false);
     const mockUsdcMintKey = web3.Keypair.generate();
 
     [mintAuthorityPda, mintAuthorityPdaBump] = web3.PublicKey.findProgramAddressSync([mockUsdcMintKey.publicKey.toBytes()], program.programId);

@@ -2,8 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
 
 use crate::{
-    errors::Errors, math::bn::ClearingHouseResult,
-    user_initialization::InitializeUserOptionalAccounts,
+    errors::Errors, handlers::InitializeUserOptionalAccounts, math::bn::ClearingHouseResult,
 };
 
 pub fn get_whitelist_token(

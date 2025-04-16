@@ -70,7 +70,7 @@ impl Market {
 #[repr(u8)]
 pub enum OracleSource {
     Pyth,
-    SwitchBoard,
+    Switchboard,
 }
 
 unsafe impl Zeroable for OracleSource {}

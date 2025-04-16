@@ -10,7 +10,7 @@ describe("clearing house: initialize", () => {
     let testCli: TestClient;
 
     before(async () => {
-        testCli = await TestClient.create(provider, 1);
+        testCli = await TestClient.create(provider, 1, true, false);
         await testCli.initializeRelevantAccounts(9, true);
     });
 

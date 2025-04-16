@@ -4,6 +4,8 @@ import { createMint } from '@solana/spl-token';
 import { createAccounts, getSeedFromNumber } from './utils';
 import { ClearingHouse } from "../../target/types/clearing_house";
 import { MockPyth } from "../../target/types/mock_pyth";
+import { OracleSource } from "./types";
+import { PEG_PRECISION } from "../constants/numericConstants";
 type PublicKey = web3.PublicKey;
 
 export class TestClient {
@@ -223,6 +225,43 @@ order state: ${this.orderState}`);
 
     async getPythPriceFeed(): Promise<IdlTypes<MockPyth>['priceUpdateV2']> {
         return (await this.mockPyth.account.priceUpdate.fetch(this.pythPriceFeed))[0];
+    }
+
+    async initializeMarket(
+        marketIndex: BN,
+        ammBaseAssetReserve: BN,
+        ammQuoteAssetReserve: BN,
+        ammPeriodicity: BN,
+        ammPegMultiplier = PEG_PRECISION,
+        oracleSource = OracleSource.PYTH,
+        marginRatioInitial = 2000,
+        marginRatioPartial = 625,
+        marginRatioMaintenance = 500,
+    ) {
+        const marketIndexNumber = marketIndex.toNumber();
+        if ((await this.getMarkets()).markets[marketIndexNumber].initialized == 1) {
+            throw Error(`marketIndex ${marketIndexNumber} already initialized`);
+        }
+
+        const currentSigner = this.getCurrentSigner();
+        await this.clearingHouse.methods.initializeMarket(
+            marketIndex,
+            ammBaseAssetReserve,
+            ammQuoteAssetReserve,
+            ammPeriodicity,
+            ammPegMultiplier,
+            oracleSource,
+            marginRatioInitial,
+            marginRatioPartial,
+            marginRatioMaintenance
+        ).accounts({
+            admin: currentSigner.publicKey,
+            state: this.state,
+            markets: this.markets,
+            oracle: this.pythPriceFeed,
+        } as any)
+            .signers([currentSigner])
+            .rpc();
     }
 
     changeCurrentSigner(index: number) {

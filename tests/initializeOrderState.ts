@@ -10,7 +10,7 @@ describe("clearing house: initialize_order_state", () => {
     let testCli: TestClient;
 
     before(async () => {
-        testCli = await TestClient.create(provider, 2);
+        testCli = await TestClient.create(provider, 2, true, false);
         await testCli.initializeRelevantAccounts(9, true);
         await testCli.initializeHistoriesAccounts(true);
         await testCli.initialize(true);

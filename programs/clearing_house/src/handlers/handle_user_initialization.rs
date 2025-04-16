@@ -1,13 +1,7 @@
 use anchor_lang::prelude::*;
+use std::mem::size_of;
 
-use crate::{
-    errors::Errors,
-    optional_accounts::get_whitelist_token,
-    state::{
-        state::State,
-        user::{User, UserPositions},
-    },
-};
+use crate::{errors::Errors, optional_accounts::get_whitelist_token, state::*};
 
 // 当state.whitelist_mint不为Pubkey::default()时，要求signer必须得持有该whitelist才可以初始化自己的User和UserPositions
 // 当state.whitelist_mint为Pubkey::default()时, 没有任何要求
@@ -57,4 +51,49 @@ pub fn initialize(
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitializeUserOptionalAccounts {
     pub whitelist_token: bool,
+}
+
+#[derive(Accounts)]
+pub struct InitializeUser<'info> {
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    pub state: AccountLoader<'info, State>,
+    #[account(
+        init,
+        payer = signer,
+        space = 8 + size_of::<User>(),
+        seeds = [b"user", signer.key.as_ref()],
+        bump
+    )]
+    pub user: Box<Account<'info, User>>,
+    #[account(
+        init,
+        payer = signer,
+        space = 8 + size_of::<UserPositions>(),
+    )]
+    pub user_postions: AccountLoader<'info, UserPositions>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct InitializeUserWithExplicitPayer<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
+    pub state: AccountLoader<'info, State>,
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + size_of::<User>(),
+        seeds = [b"user", authority.key.as_ref()],
+        bump
+    )]
+    pub user: Box<Account<'info, User>>,
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + size_of::<UserPositions>(),
+    )]
+    pub user_postions: AccountLoader<'info, UserPositions>,
+    pub system_program: Program<'info, System>,
 }
